@@ -1,31 +1,32 @@
 package main
 
 import (
-	"fmt"
-	"strings"
+	"os"
+	"os/signal"
+
+	"github.com/veyanrech/homeWebCamera/camera"
+	"github.com/veyanrech/homeWebCamera/config"
 )
 
 func main() {
-	// Code
-	//ask for console user input to enter devices names
-	dn := askForDevicesNames()
+	//run Camera Capturing
 
-	if dn == nil {
-		fmt.Println("Exitig program")
-		return
+	conf := config.NewConfig()
+
+	cam := camera.NewCameraByOS(conf)
+
+	if cam == nil {
+		panic("Camera not found")
 	}
 
-}
+	cs := camera.NewCameraService(cam, conf)
 
-func askForDevicesNames() []string {
-	fmt.Println("Enter the devices names separated by comma")
-	var devicesNames string
-	fmt.Scanln(&devicesNames)
+	cs.TakePictureEvery()
 
-	if devicesNames == "" {
-		fmt.Println("No devices names entered")
-		return nil
-	}
+	signalChannel := make(chan os.Signal, 1)
 
-	return strings.Split(devicesNames, ",")
+	signal.Notify(signalChannel, os.Interrupt)
+
+	<-signalChannel
+
 }

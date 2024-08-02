@@ -3,6 +3,8 @@ package camera
 import (
 	"reflect"
 	"testing"
+
+	"github.com/veyanrech/homeWebCamera/config"
 )
 
 func TestNewCameraByOS(t *testing.T) {
@@ -22,7 +24,7 @@ func TestNewCameraByOS(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewCameraByOS(tt.args.dn); !reflect.DeepEqual(got, tt.want) {
+			if got := NewCameraByOS(config.NewConfig()); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewCameraByOS() = %v, want %v", got, tt.want)
 			}
 		})
