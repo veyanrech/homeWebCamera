@@ -12,7 +12,7 @@ type RoundBufferQueue struct {
 
 func NewRoundBufferQueue(bufferlen int) *RoundBufferQueue {
 	return &RoundBufferQueue{
-		queue:  make([]string, bufferlen, bufferlen),
+		queue:  make([]string, bufferlen),
 		snc:    sync.RWMutex{},
 		buflen: bufferlen,
 	}
@@ -35,16 +35,31 @@ func (rbq *RoundBufferQueue) Add(s string) {
 	rbq.nextIndex = (rbq.nextIndex + 1) % len(rbq.queue)
 }
 
-func (rbq *RoundBufferQueue) Get() string {
+func (rbq *RoundBufferQueue) Get() (string, bool) {
 	rbq.snc.Lock()
 	defer rbq.snc.Unlock()
 
 	if rbq.pointer == rbq.nextIndex {
-		return ""
+		return "", false
 	}
 
 	s := rbq.queue[rbq.pointer]
 	rbq.pointer = (rbq.pointer + 1) % len(rbq.queue)
 
-	return s
+	return s, true
+}
+
+func (rbq *RoundBufferQueue) UnprocessedLen() int {
+	rbq.snc.RLock()
+	defer rbq.snc.RUnlock()
+
+	if rbq.pointer == rbq.nextIndex {
+		return 0
+	}
+
+	if rbq.pointer < rbq.nextIndex {
+		return rbq.nextIndex - rbq.pointer
+	}
+
+	return len(rbq.queue) - rbq.pointer + rbq.nextIndex
 }

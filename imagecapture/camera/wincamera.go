@@ -13,13 +13,14 @@ type winCamera struct {
 	DevicesNames   []string
 	PicturesFolder string
 	conf           config.Config
+	l              utils.Logger
 }
 
-func NewWinCamera(picdir string, c config.Config) Camera {
+func NewWinCamera(picdir string, c config.Config, l utils.Logger) Camera {
 
 	dn := c.GetSliceOfStrings("devices")
 	if dn == nil {
-		dn = askForMacOsDevicesNames()
+		dn = askForWinDevicesNames()
 	}
 
 	if dn == nil {
@@ -41,6 +42,7 @@ func (c *winCamera) TakePicture() error {
 		finalCommand := fmt.Sprintf(ffmpegCommandFormat, v, c.PicturesFolder, utils.GenerateFilename("output.jpg"))
 		err := c.runWinCommand(finalCommand)
 		if err != nil {
+			c.l.Error(err.Error())
 			return err
 		}
 	}

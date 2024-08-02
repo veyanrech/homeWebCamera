@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/veyanrech/homeWebCamera/config"
+	"github.com/veyanrech/homeWebCamera/utils"
 )
 
 func TestNewCameraByOS(t *testing.T) {
@@ -22,9 +23,12 @@ func TestNewCameraByOS(t *testing.T) {
 			want: nil,
 		},
 	}
+
+	lggr := utils.NewConsoleLogger()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewCameraByOS(config.NewConfig()); !reflect.DeepEqual(got, tt.want) {
+			if got := NewCameraByOS(config.NewConfig(), lggr); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewCameraByOS() = %v, want %v", got, tt.want)
 			}
 		})

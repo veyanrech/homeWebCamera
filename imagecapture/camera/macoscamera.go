@@ -15,9 +15,10 @@ type macOSCamera struct {
 	DevicesNames   []string
 	PicturesFolder string
 	conf           config.Config
+	l              utils.Logger
 }
 
-func NewMacOSCamera(folder string, c config.Config) Camera {
+func NewMacOSCamera(folder string, c config.Config, l utils.Logger) Camera {
 
 	dn := c.GetSliceOfStrings("devices")
 	if dn == nil {
@@ -29,10 +30,13 @@ func NewMacOSCamera(folder string, c config.Config) Camera {
 		return nil
 	}
 
+	c.Set("devices_count", len(dn))
+
 	return &macOSCamera{
 		DevicesNames:   dn,
 		PicturesFolder: folder,
 		conf:           c,
+		l:              l,
 	}
 }
 
@@ -51,13 +55,13 @@ func (c *macOSCamera) TakePicture() error {
 func (c *macOSCamera) runTakePictureMacosCommand(devicename string, picturesPlace string) error {
 	cmd := exec.Command("sh", "-c", "echo $(ffmpeg -f avfoundation -framerate 30 -video_size 1280x720 -i "+devicename+" -frames:v 1 "+picturesPlace+")")
 
-	o, err := cmd.CombinedOutput()
+	_, err := cmd.CombinedOutput()
 
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(string(o))
+	c.l.Info("runTakePictureMacosCommand: picture captured")
 
 	return nil
 }
