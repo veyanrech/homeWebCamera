@@ -1,2 +1,3 @@
-/imagecature/pictures
-/imagecature/logs
+/imagecapture/pictures
+/imagecapture/logs
+*.exe

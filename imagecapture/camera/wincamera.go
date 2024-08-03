@@ -52,7 +52,12 @@ func (c *winCamera) TakePicture() error {
 }
 
 func (c *winCamera) runWinCommand(command string) error {
-	err := exec.Command("cmd", c.PicturesFolder, command).Run()
+	cmd := exec.Command("cmd", c.PicturesFolder, command)
+
+	b, err := cmd.CombinedOutput()
+
+	c.l.Info(string(b))
+
 	if err != nil {
 		return err
 	}
