@@ -36,7 +36,7 @@ func NewWinCamera(picdir string, c config.Config, l utils.Logger) Camera {
 }
 
 func (c *winCamera) TakePicture() error {
-	ffmpegCommandFormat := "ffmpeg -f dshow -i video=\"%s\" -vframes 1 %s/%s"
+	ffmpegCommandFormat := "ffmpeg -f dshow -i video=\"%s\" -vframes 1 %s\\%s"
 
 	for _, v := range c.DevicesNames {
 		finalCommand := fmt.Sprintf(ffmpegCommandFormat, v, c.PicturesFolder, utils.GenerateFilename("output.jpg"))

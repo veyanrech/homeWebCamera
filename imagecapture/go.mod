@@ -1,3 +1,3 @@
 module github.com/veyanrech/homeWebCamera
 
-go 1.22.4
+go 1.21.4
