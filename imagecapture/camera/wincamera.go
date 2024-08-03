@@ -44,8 +44,8 @@ func (c *winCamera) TakePicture() error {
 	for _, v := range c.DevicesNames {
 
 		// finalCommand := fmt.Sprintf(ffmpegCommandFormat, v, c.PicturesFolder, utils.GenerateFilename("output.jpg"))
-		cmdSPlit[4] = fmt.Sprintf("video=\"%s\"", v)
-		cmdSPlit[6] = fmt.Sprintf("%s\\%s", c.PicturesFolder, utils.GenerateFilename("output.jpg"))
+		cmdSPlit[4] = fmt.Sprintf("video=%s", v)
+		cmdSPlit[7] = fmt.Sprintf("%s\\%s", c.PicturesFolder, utils.GenerateFilename("output.jpg"))
 
 		cmdSPlitcopy := make([]string, len(cmdSPlit))
 		copy(cmdSPlitcopy, cmdSPlit)

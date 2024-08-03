@@ -1,6 +1,6 @@
 {
     "ffmpeg": "ffmpeg"
-    ,"devices" : ["Integrated Webcam", "Logitech HD Pro Webcam C920"]
+    ,"devices" : ["Integrated Webcam", "Logi C270 HD WebCam"]
     ,"take_picture_interval_min":5
     ,"send_file_interval_min":1
     ,"send_file_count":2
