@@ -12,7 +12,7 @@ type RoundBufferQueue struct {
 
 func NewRoundBufferQueue(bufferlen int) *RoundBufferQueue {
 	return &RoundBufferQueue{
-		queue:  make([]string, bufferlen),
+		queue:  make([]string, bufferlen, bufferlen),
 		snc:    sync.RWMutex{},
 		buflen: bufferlen,
 	}

@@ -28,6 +28,8 @@ func NewWinCamera(picdir string, c config.Config, l utils.Logger) Camera {
 		return nil
 	}
 
+	c.Set("devices_count", len(dn))
+
 	return &winCamera{
 		DevicesNames:   dn,
 		PicturesFolder: picdir,
