@@ -7,9 +7,13 @@ import (
 
 func GenerateFilename(additional string) string {
 
-	timeNow := time.Now().Format("2006-01-02-15:04:05.000")
+	timeNow := time.Now()
+	firstpart := timeNow.Format("2006_01_02_15_04_05")
+	secondpart := timeNow.Format(".000")
 
-	return timeNow + "-" + additional
+	firstandsecond := firstpart + "_" + secondpart[1:]
+
+	return firstandsecond + "_" + additional
 
 }
 
