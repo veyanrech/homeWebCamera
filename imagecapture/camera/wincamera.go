@@ -38,9 +38,18 @@ func NewWinCamera(picdir string, c config.Config, l utils.Logger) Camera {
 func (c *winCamera) TakePicture() error {
 	ffmpegCommandFormat := "ffmpeg -f dshow -i video=\"%s\" -vframes 1 %s\\%s"
 
+	cmdSPlit := strings.Split(ffmpegCommandFormat, " ")
+
 	for _, v := range c.DevicesNames {
-		finalCommand := fmt.Sprintf(ffmpegCommandFormat, v, c.PicturesFolder, utils.GenerateFilename("output.jpg"))
-		err := c.runWinCommand(finalCommand)
+
+		// finalCommand := fmt.Sprintf(ffmpegCommandFormat, v, c.PicturesFolder, utils.GenerateFilename("output.jpg"))
+		cmdSPlit[4] = fmt.Sprintf("video=\"%s\"", v)
+		cmdSPlit[6] = fmt.Sprintf("%s\\%s", c.PicturesFolder, utils.GenerateFilename("output.jpg"))
+
+		cmdSPlitcopy := make([]string, len(cmdSPlit))
+		copy(cmdSPlitcopy, cmdSPlit)
+
+		err := c.runWinCommandsplitted(cmdSPlitcopy)
 		if err != nil {
 			c.l.Error(err.Error())
 			return err
@@ -53,6 +62,19 @@ func (c *winCamera) TakePicture() error {
 
 func (c *winCamera) runWinCommand(command string) error {
 	cmd := exec.Command("cmd", c.PicturesFolder, command)
+
+	b, err := cmd.CombinedOutput()
+
+	c.l.Info(string(b))
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *winCamera) runWinCommandsplitted(command []string) error {
+	cmd := exec.Command(command[0], command[1:]...)
 
 	b, err := cmd.CombinedOutput()
 
