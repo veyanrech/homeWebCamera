@@ -26,11 +26,11 @@ func NewConfig() Config {
 	res.Data = make(map[string]interface{})
 
 	filename := "config.json"
-	switch os := utils.GetOS(); os {
+	switch opsys := utils.GetOS(); opsys {
 	case "darwin":
-		filename = "./macos.config.json"
+		filename = "." + string(os.PathSeparator) + "macos.config.json"
 	case "windows":
-		filename = "./win.config.json"
+		filename = "." + string(os.PathSeparator) + "win.config.json"
 	}
 
 	err := res.loadConfigFromFile(filename)

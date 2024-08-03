@@ -39,20 +39,20 @@ func NewFileLogger(infof, errorf string) Logger {
 		panic(err)
 	}
 
-	path += "/logs"
+	path += string(os.PathSeparator) + "logs"
 
 	err = os.MkdirAll(path, 0755)
 	if err != nil {
 		panic(err)
 	}
 
-	f, err := os.OpenFile(path+"/"+infof, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(path+string(os.PathSeparator)+infof, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
 	}
 	res.filepathInfo = f
 
-	f, err = os.OpenFile(path+"/"+errorf, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err = os.OpenFile(path+string(os.PathSeparator)+errorf, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
 	}

@@ -80,7 +80,7 @@ func createFolder() string {
 		panic(err)
 	}
 
-	folder := dir + "/pictures"
+	folder := dir + string(os.PathSeparator) + "pictures"
 
 	//create folder
 	err = os.MkdirAll(folder, os.ModePerm)

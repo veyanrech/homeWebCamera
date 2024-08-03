@@ -152,7 +152,7 @@ func (c *Client) sendFile(delqu *RoundBufferQueue) {
 func (c *Client) removeFile(delqu *RoundBufferQueue) {
 	v, ok := delqu.Get()
 	for ok {
-		err := os.Remove(c.conf.GetString("pictures_folder") + "/" + v)
+		err := os.Remove(c.conf.GetString("pictures_folder") + string(os.PathSeparator) + v)
 		if err != nil {
 			c.l.Error(fmt.Sprint("Error removing file: ", err))
 		}
