@@ -32,6 +32,7 @@ func NewWinCamera(picdir string, c config.Config, l utils.Logger) Camera {
 		DevicesNames:   dn,
 		PicturesFolder: picdir,
 		conf:           c,
+		l:              l,
 	}
 }
 
