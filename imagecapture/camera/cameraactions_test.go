@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/veyanrech/homeWebCamera/config"
-	"github.com/veyanrech/homeWebCamera/utils"
+	"github.com/veyanrech/homeWebCamera/imagecapture/config"
+	"github.com/veyanrech/homeWebCamera/imagecapture/utils"
 )
 
 func TestNewCameraByOS(t *testing.T) {
