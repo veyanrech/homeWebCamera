@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/veyanrech/homeWebCamera/utils"
+	"github.com/veyanrech/homeWebCamera/imagecapture/utils"
 )
 
 type Config interface {

@@ -1,7 +1,7 @@
 # Use base golang image from Docker Hub
 FROM golang:1.21 AS build
 
-WORKDIR /hello-world
+WORKDIR /tgbot
 
 # Avoid dynamic linking of libc, since we are using a different deployment image
 # that might have a different version of libc.
@@ -29,9 +29,7 @@ FROM gcr.io/distroless/static-debian11
 ENV GOTRACEBACK=single
 
 # Copy template & assets
-WORKDIR /hello-world
+WORKDIR /tgbot
 COPY --from=build /app ./app
-COPY index.html index.html
-COPY assets assets/
 
 ENTRYPOINT ["./app"]

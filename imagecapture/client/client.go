@@ -10,8 +10,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/veyanrech/homeWebCamera/config"
-	"github.com/veyanrech/homeWebCamera/utils"
+	"github.com/veyanrech/homeWebCamera/imagecapture/config"
+	"github.com/veyanrech/homeWebCamera/imagecapture/utils"
 )
 
 type Client struct {
@@ -42,6 +42,8 @@ func (c *Client) Run() {
 
 		deleteQueue := NewRoundBufferQueue(c.conf.GetInt("devices_count"))
 
+		allowtodeleteChannel := make(chan bool, 1)
+
 		for {
 			select {
 			case <-ticker.C:
@@ -50,10 +52,13 @@ func (c *Client) Run() {
 				c.loadFileToQueue()
 
 				// Send file
-				c.sendFile(deleteQueue)
+				c.sendFile(deleteQueue, allowtodeleteChannel)
 
 				// Remove file
-				c.removeFile(deleteQueue)
+				go func() {
+					<-allowtodeleteChannel
+					c.removeFile(deleteQueue)
+				}()
 
 			case <-signalChannel:
 				os.Exit(0)
@@ -71,17 +76,28 @@ func (c *Client) loadFileToQueue() {
 	for _, f := range fs {
 		if !f.IsDir() {
 			// Add file to queue
+			c.l.Info(fmt.Sprint("Adding file to queue: ", f.Name()))
 			c.q.Add(f.Name())
 		}
 	}
 }
 
-func (c *Client) sendFile(delqu *RoundBufferQueue) {
+func (c *Client) sendFile(delqu *RoundBufferQueue, allowToDeleteCh chan bool) {
+
+	if c.q.UnprocessedLen() < 2 {
+		return
+	}
+
 	formdataBody := bytes.Buffer{}
 	writer := multipart.NewWriter(&formdataBody)
+	tempqueue := NewRoundBufferQueue(c.conf.GetInt("devices_count"))
 	counter := 0
 	v, ok := c.q.Get()
 	for ok {
+
+		c.l.Info(fmt.Sprint("Sending file: ", v))
+
+		tempqueue.Add(v)
 
 		counter++
 
@@ -108,41 +124,61 @@ func (c *Client) sendFile(delqu *RoundBufferQueue) {
 		}
 
 		//send file
-		if counter == c.conf.GetInt("devices_count") {
-
-			writer.Close()
-
-			req, err := http.NewRequest("POST", c.conf.GetString("bot_url"), &formdataBody)
-			if err != nil {
-				c.l.Error(fmt.Sprint("Error creating request: ", err))
-				fopen.Close()
-				continue
-			}
-
-			req.Header.Set("Content-Type", writer.FormDataContentType())
-			req.Header.Set("X-Chat-Registration-Token", c.conf.GetString("registered_chat_token"))
-
-			//send files
-			client := http.Client{}
-			resp, err := client.Do(req)
-			if err != nil {
-				c.l.Error(fmt.Sprint("Error sending file: ", err))
-				fopen.Close()
-				continue
-			}
-
-			if resp.StatusCode != http.StatusOK {
-				c.l.Error(fmt.Sprint("Error sending file: ", resp.Status))
-				fopen.Close()
-				continue
-			}
-
+		if counter != c.conf.GetInt("devices_count") {
 			fopen.Close()
+			v, ok = c.q.Get()
+			continue
+		}
+
+		writer.Close()
+
+		req, err := http.NewRequest("POST", c.conf.GetString("bot_url"), &formdataBody)
+		if err != nil {
+			c.l.Error(fmt.Sprint("Error creating request: ", err))
+			fopen.Close()
+			continue
+		}
+
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+		req.Header.Set("X-Chat-Registration-Token", c.conf.GetString("registered_chat_token"))
+
+		//send files
+		client := http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			c.l.Error(fmt.Sprint("Error sending file: ", err))
+			fopen.Close()
+			continue
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			c.l.Error(fmt.Sprint("Error sending file: ", resp.Status))
+			fopen.Close()
+
+			//return files to queue
+			v2, ok2 := tempqueue.Get()
+			for ok2 {
+				c.q.Add(v2)
+				v2, ok2 = tempqueue.Get()
+			}
+
+			continue
+		} else {
+
+			//add files to delete queue
+			v2, ok2 := tempqueue.Get()
+			for ok2 {
+				c.l.Info(fmt.Sprint("File sent and ready to be deleted: ", v2))
+				delqu.Add(v2)
+				v2, ok2 = tempqueue.Get()
+			}
+
+			go func() {
+				allowToDeleteCh <- true
+			}()
 		}
 
 		fopen.Close()
-
-		delqu.Add(v)
 
 		v, ok = c.q.Get()
 	}
@@ -152,6 +188,7 @@ func (c *Client) sendFile(delqu *RoundBufferQueue) {
 func (c *Client) removeFile(delqu *RoundBufferQueue) {
 	v, ok := delqu.Get()
 	for ok {
+		c.l.Info(fmt.Sprint("Removing file: ", v))
 		err := os.Remove(c.conf.GetString("pictures_folder") + string(os.PathSeparator) + v)
 		if err != nil {
 			c.l.Error(fmt.Sprint("Error removing file: ", err))

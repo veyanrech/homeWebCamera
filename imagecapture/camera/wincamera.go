@@ -5,8 +5,8 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/veyanrech/homeWebCamera/config"
-	"github.com/veyanrech/homeWebCamera/utils"
+	"github.com/veyanrech/homeWebCamera/imagecapture/config"
+	"github.com/veyanrech/homeWebCamera/imagecapture/utils"
 )
 
 type winCamera struct {

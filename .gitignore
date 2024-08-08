@@ -1,3 +1,4 @@
 /imagecapture/pictures
 /imagecapture/logs
 *.exe
+/bot/.env

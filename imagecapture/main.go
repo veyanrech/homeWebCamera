@@ -4,10 +4,10 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/veyanrech/homeWebCamera/camera"
-	"github.com/veyanrech/homeWebCamera/client"
-	"github.com/veyanrech/homeWebCamera/config"
-	"github.com/veyanrech/homeWebCamera/utils"
+	"github.com/veyanrech/homeWebCamera/imagecapture/camera"
+	"github.com/veyanrech/homeWebCamera/imagecapture/client"
+	"github.com/veyanrech/homeWebCamera/imagecapture/config"
+	"github.com/veyanrech/homeWebCamera/imagecapture/utils"
 )
 
 func main() {
