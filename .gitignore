@@ -1,4 +1,8 @@
-/imagecapture/pictures
-/imagecapture/logs
+/imagecapture/cmd/pictures
+/imagecapture/cmd/logs
+/imagecapture/cmd/*.json
+/imagecapture/cmd/__debug*
 *.exe
-/bot/eenv.json
+/bot/cmd/*.json
+/bot/cmd/*.json
+/bot/cmd/__debug*

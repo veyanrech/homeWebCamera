@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/veyanrech/homeWebCamera/imagecapture/config"
 )
@@ -13,7 +11,7 @@ func main() {
 
 	// set webhook for bot
 
-	bot, err := tgbot.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
+	bot, err := tgbot.NewBotAPI(conf.GetString("telegram_bot_token"))
 	if err != nil {
 		panic(err)
 	}

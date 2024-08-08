@@ -1,9 +1,0 @@
-{
-    "ffmpeg": "ffmpeg"
-    ,"devices" : ["Integrated Webcam", "Logi C270 HD WebCam"]
-    ,"take_picture_interval_min":5
-    ,"send_file_interval_min":1
-    ,"send_file_count":2
-    ,"registered_chat_token": "your_chat_token"
-    ,"bot_url":"https://api.telegram.org/bot"
-}
