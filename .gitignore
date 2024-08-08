@@ -1,4 +1,4 @@
 /imagecapture/pictures
 /imagecapture/logs
 *.exe
-/bot/env.json
+/bot/eenv.json
