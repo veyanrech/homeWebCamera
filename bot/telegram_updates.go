@@ -146,7 +146,12 @@ func (p *privateMessageProcessor) processMessage() {
 
 func (p *privateMessageProcessor) registerChat() {
 	channelchatid := p.updateInfo.Message.ForwardFromChat.ID
-	token := p.telegramUpdatesInst.RegisterChat(channelchatid)
+	token, err := p.telegramUpdatesInst.RegisterChat(channelchatid)
+	if err != nil {
+		p.telegramUpdatesInst.db.logger.Error(fmt.Sprintf("Error while registering chat: %v", err))
+		p.telegramUpdatesInst.bot.Send(tgbotapi.NewMessage(p.updateInfo.Message.Chat.ID, "Error while registering chat"))
+		return
+	}
 	chatid := p.updateInfo.Message.Chat.ID
 	msg := tgbotapi.NewMessage(chatid, fmt.Sprintf("Your token is: %s", token))
 	p.telegramUpdatesInst.bot.Send(msg)
@@ -173,10 +178,23 @@ func (tu *TelegramUpdates) SendCommandsList(chatid int64) {
 
 // RegisterChat register chat to send photos
 // this method will return the randomly generated token
-func (tu *TelegramUpdates) RegisterChat(channelid int64) string {
+func (tu *TelegramUpdates) RegisterChat(channelid int64) (string, error) {
+	//check if chat is already registered
+	//if registered return the token
+	//if not registered generate a token and register the chat
+	res, err := tu.db.FindChatID(channelid)
+	if err != nil {
+		tu.db.logger.Error(fmt.Sprintf("Error while finding chat id: %v", err))
+		return "", err
+	}
+
+	if res.token != "" {
+		return res.token, nil
+	}
+
 	token := generateRandomTokenWithLength(24)
-	// tu.db.SaveChat(channelid, token)
-	return token
+	tu.db.RegisterChatID(channelid, token)
+	return token, nil
 
 }
 

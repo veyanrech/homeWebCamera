@@ -9,11 +9,29 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func NewLocalFB() *sql.DB {
+type LocalFB struct {
+	db *sql.DB
+}
+
+func (l *LocalFB) ReturnDB() *sql.DB {
+	return l.db
+}
+
+func (l *LocalFB) Ping() error {
+	return l.db.Ping()
+}
+
+func NewLocalFB() DBi {
+
+	var res *LocalFB = nil
 
 	db, err := sql.Open("sqlite3", "./example.db")
 	if err != nil {
 		panic(err)
+	}
+
+	res = &LocalFB{
+		db: db,
 	}
 
 	go func() {
@@ -23,5 +41,5 @@ func NewLocalFB() *sql.DB {
 		db.Close()
 	}()
 
-	return db
+	return res
 }

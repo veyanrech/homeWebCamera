@@ -22,12 +22,12 @@ func NewDB() *DBOps {
 
 	//create postgres db driver
 
-	var sqldb *sql.DB
+	var sqldb dbs.DBi
 
-	environment := "prod"
+	environment := "dev"
 
-	if os.Getenv("webcamerabot_env") == "dev" {
-		environment = "dev"
+	if os.Getenv("webcamerabot_env") == "prod" {
+		environment = "prod"
 	}
 
 	if environment == "dev" {
@@ -36,21 +36,155 @@ func NewDB() *DBOps {
 		sqldb = dbs.NewPostgres()
 	}
 
-	return &DBOps{
-		db:     sqldb,
+	err := sqldb.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+	res := &DBOps{
+		db:     sqldb.ReturnDB(),
 		logger: utils.NewFileLogger("db_info.log", "db_error.log"),
 	}
 
-}
-
-func connect() (*sql.DB, error) {
-	return sql.Open("postgres", "user=postgres dbname=postgres sslmode=disable")
-}
-
-func (db *DBOps) RegisterChatID(chatID int64, token string) {
-	sqlq := "INSERT INTO  (chat_id, token) VALUES (?, ?)"
-	_, err := db.db.Exec(sqlq, chatID, token)
+	err = res.Init()
 	if err != nil {
-
+		panic(err)
 	}
+
+	return res
+}
+
+func (db *DBOps) DeactivateChatID(chatID int64) error {
+	sqlq := "UPDATE registeredchats SET active = FALSE WHERE chat_id = $1"
+
+	tx, err := db.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(sqlq, chatID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *DBOps) ActivateChatID(chatID int64) error {
+	sqlq := "UPDATE registeredchats SET active = TRUE WHERE chat_id = $1"
+
+	tx, err := db.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(sqlq, chatID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type chatInfo struct {
+	id     int
+	chatID int64
+	token  string
+	active bool
+}
+
+func (db *DBOps) FindChatIDByToken(token string) (chatInfo, error) {
+	sqlq := "SELECT id, chat_id, token, active FROM registeredchats WHERE token = $1 AND active = TRUE"
+
+	row := db.db.QueryRow(sqlq, token)
+
+	var chatID int64
+	var chatToken string
+	var chatActive bool
+	var id int
+
+	err := row.Scan(&id, &chatID, &chatToken, &chatActive)
+
+	if err != nil {
+		return chatInfo{}, err
+	}
+
+	return chatInfo{
+		id:     id,
+		chatID: chatID,
+		token:  chatToken,
+		active: chatActive,
+	}, nil
+}
+
+func (db *DBOps) FindChatID(chatID int64) (chatInfo, error) {
+	sqlq := "SELECT id, chat_id, token, active FROM registeredchats WHERE chat_id = $1 AND active = TRUE"
+
+	row := db.db.QueryRow(sqlq, chatID)
+
+	var reschatID int64
+	var reschatToken string
+	var reschatActive bool
+	var resid int
+
+	err := row.Scan(&resid, &reschatID, &reschatToken, &reschatActive)
+	if err != nil {
+		return chatInfo{}, err
+	}
+
+	return chatInfo{
+		id:     resid,
+		chatID: reschatID,
+		token:  reschatToken,
+		active: reschatActive,
+	}, nil
+}
+
+func (db *DBOps) RegisterChatID(chatID int64, token string) error {
+	sqlq := "INSERT INTO registeredchats (chat_id, token) VALUES (?, ?)"
+
+	tx, err := db.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(sqlq, chatID, token)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *DBOps) Init() error {
+	sqlq := `CREATE TABLE IF NOT EXISTS registeredchats (
+		id SERIAL PRIMARY KEY NOT NULL,
+		chat_id BIGINT NOT NULL,
+		token TEXT NOT NULL,
+		active BOOLEAN DEFAULT TRUE
+	);`
+	_, err := db.db.Exec(sqlq)
+	if err != nil {
+		db.logger.Error("Failed to create table chat_ids")
+	}
+
+	return err
 }
