@@ -36,7 +36,7 @@ func NewConfig() Config {
 	err := res.loadConfigFromFile(filename)
 
 	if err != nil {
-		panic(err)
+		return nil
 	}
 
 	return res

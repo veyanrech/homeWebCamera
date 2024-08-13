@@ -6,3 +6,4 @@
 /bot/cmd/*.json
 /bot/cmd/*.json
 /bot/cmd/__debug*
+/bot/certs/
