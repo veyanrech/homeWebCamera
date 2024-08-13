@@ -1,6 +1,7 @@
 package camera
 
 import (
+	"os"
 	"reflect"
 	"testing"
 
@@ -28,7 +29,17 @@ func TestNewCameraByOS(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewCameraByOS(config.NewConfig(), lggr); !reflect.DeepEqual(got, tt.want) {
+
+			var filename string
+
+			switch opsys := utils.GetOS(); opsys {
+			case "darwin":
+				filename = "." + string(os.PathSeparator) + "macos.config.json"
+			case "windows":
+				filename = "." + string(os.PathSeparator) + "win.config.json"
+			}
+
+			if got := NewCameraByOS(config.NewConfig(filename), lggr); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewCameraByOS() = %v, want %v", got, tt.want)
 			}
 		})

@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-
-	"github.com/veyanrech/homeWebCamera/imagecapture/utils"
 )
 
 type Config interface {
@@ -20,20 +18,12 @@ type config struct {
 	Data map[string]interface{}
 }
 
-func NewConfig() Config {
+func NewConfig(filepath string) Config {
 	res := &config{}
 
 	res.Data = make(map[string]interface{})
 
-	filename := "config.json"
-	switch opsys := utils.GetOS(); opsys {
-	default:
-		filename = "." + string(os.PathSeparator) + "macos.config.json"
-	case "windows":
-		filename = "." + string(os.PathSeparator) + "win.config.json"
-	}
-
-	err := res.loadConfigFromFile(filename)
+	err := res.loadConfigFromFile(filepath)
 
 	if err != nil {
 		return nil

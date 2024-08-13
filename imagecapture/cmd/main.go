@@ -14,7 +14,17 @@ func main() {
 	//run Camera Capturing
 	lggr := utils.NewFileLogger("info.log", "error.log")
 
-	conf := config.NewConfig()
+	var conf config.Config
+	var filename string
+
+	switch opsys := utils.GetOS(); opsys {
+	case "darwin":
+		filename = "." + string(os.PathSeparator) + "macos.config.json"
+	case "windows":
+		filename = "." + string(os.PathSeparator) + "win.config.json"
+	}
+
+	conf = config.NewConfig(filename)
 
 	cam := camera.NewCameraByOS(conf, lggr)
 
