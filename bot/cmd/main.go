@@ -28,16 +28,16 @@ func main() {
 	botInst.SetWebhookOnStart()
 	updchan := _bot.ListenForWebhook("/webhook")
 
+	app := bot.NewFilesReceriverClient(botInst)
+
+	http.HandleFunc("/filesreciever", app.RecieveFileHandler)
+
 	go func() {
 		for {
 			upd := <-updchan
 			botInst.ProcessUpdates(upd)
 		}
 	}()
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello World"))
-	})
 
 	http.ListenAndServeTLS(fmt.Sprintf(":%s", conf.GetString("BOT_PORT")), "../certs/pub.pem", "../certs/private.key", nil)
 

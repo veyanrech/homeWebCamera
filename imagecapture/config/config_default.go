@@ -27,7 +27,7 @@ func NewConfig() Config {
 
 	filename := "config.json"
 	switch opsys := utils.GetOS(); opsys {
-	case "darwin":
+	default:
 		filename = "." + string(os.PathSeparator) + "macos.config.json"
 	case "windows":
 		filename = "." + string(os.PathSeparator) + "win.config.json"

@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -132,7 +133,7 @@ func (c *Client) sendFile(delqu *RoundBufferQueue, allowToDeleteCh chan bool) {
 
 		writer.Close()
 
-		req, err := http.NewRequest("POST", c.conf.GetString("bot_url"), &formdataBody)
+		req, err := http.NewRequest("POST", c.conf.GetString("photos_receiver_url"), &formdataBody)
 		if err != nil {
 			c.l.Error(fmt.Sprint("Error creating request: ", err))
 			fopen.Close()
@@ -143,7 +144,13 @@ func (c *Client) sendFile(delqu *RoundBufferQueue, allowToDeleteCh chan bool) {
 		req.Header.Set("X-Chat-Registration-Token", c.conf.GetString("registered_chat_token"))
 
 		//send files
-		client := http.Client{}
+		client := http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true, // Disable certificate verification
+				},
+			},
+		}
 		resp, err := client.Do(req)
 		if err != nil {
 			c.l.Error(fmt.Sprint("Error sending file: ", err))

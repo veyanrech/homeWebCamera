@@ -13,11 +13,13 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/veyanrech/homeWebCamera/imagecapture/config"
+	"github.com/veyanrech/homeWebCamera/imagecapture/utils"
 )
 
 var commands []string = []string{"/start", "/help", "/register", "/stop", "/resume"}
 
 type TelegramUpdates struct {
+	log  utils.Logger
 	bot  *tgbotapi.BotAPI
 	db   *DBOps
 	conf config.Config
@@ -28,6 +30,7 @@ func NewTelegramUpdates(b *tgbotapi.BotAPI, conf config.Config) *TelegramUpdates
 		bot:  b,
 		db:   NewDB(),
 		conf: conf,
+		log:  utils.NewFileLogger("telegram_updates.log", "telegram_updates_errors.log"),
 	}
 }
 
@@ -196,6 +199,56 @@ func (tu *TelegramUpdates) RegisterChat(channelid int64) (string, error) {
 	tu.db.RegisterChatID(channelid, token)
 	return token, nil
 
+}
+
+func (tu *TelegramUpdates) SendFileToChat(fileinput map[string][]*multipart.FileHeader, sectoken string) {
+	//get chat id from token
+	res, err := tu.db.FindChatIDByToken(sectoken)
+	if err != nil {
+		return
+	}
+
+	mediagroupConfig := tgbotapi.NewMediaGroup(res.chatID, []interface{}{})
+
+	filestosend := []interface{}{}
+
+	for k, fileheader := range fileinput {
+		tu.log.Info(fmt.Sprintf("file: %s", k))
+		for _, fileh := range fileheader {
+			tu.log.Info(fmt.Sprintf("file: %s", fileh.Filename))
+			file, err := fileh.Open()
+			if err != nil {
+				tu.log.Error(fmt.Sprintf("Error while opening file: %v", err))
+				return
+			}
+			defer file.Close()
+
+			fileBytes := bytes.Buffer{}
+			_, err = io.Copy(&fileBytes, file)
+			if err != nil {
+				tu.log.Error(fmt.Sprintf("Error while reading file: %v", err))
+				return
+			}
+
+			tgfilebytes := tgbotapi.FileBytes{
+				Name:  fileh.Filename,
+				Bytes: fileBytes.Bytes(),
+			}
+
+			tgbotfile := tgbotapi.NewInputMediaPhoto(tgfilebytes)
+
+			filestosend = append(filestosend, tgbotfile)
+		}
+	}
+
+	mediagroupConfig.Media = filestosend
+
+	//send file to chat
+	_, err = tu.bot.SendMediaGroup(mediagroupConfig)
+	if err != nil {
+		tu.log.Error(fmt.Sprintf("Error while sending media group: %v", err))
+		return
+	}
 }
 
 // stop sending photos to chat

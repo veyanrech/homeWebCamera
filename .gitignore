@@ -1,9 +1,11 @@
 /imagecapture/cmd/pictures
+/imagecapture/cmd/buils
 /imagecapture/cmd/logs
 /imagecapture/cmd/*.json
 /imagecapture/cmd/__debug*
 *.exe
 /bot/cmd/*.json
-/bot/cmd/*.json
+*.log
 /bot/cmd/__debug*
 /bot/certs/
+/bot/cmd/builds/
