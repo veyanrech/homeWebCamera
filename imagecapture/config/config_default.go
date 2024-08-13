@@ -25,7 +25,7 @@ func NewConfig(filepath string) Config {
 
 	err := res.loadConfigFromFile(filepath)
 
-	if err != nil {
+	if err != nil { //temporary solution
 		panic(err)
 	}
 
