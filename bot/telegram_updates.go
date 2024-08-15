@@ -201,14 +201,8 @@ func (tu *TelegramUpdates) RegisterChat(channelid int64) (string, error) {
 
 }
 
-func (tu *TelegramUpdates) SendFileToChat(fileinput map[string][]*multipart.FileHeader, sectoken string) {
-	//get chat id from token
-	res, err := tu.db.FindChatIDByToken(sectoken)
-	if err != nil {
-		return
-	}
-
-	mediagroupConfig := tgbotapi.NewMediaGroup(res.chatID, []interface{}{})
+func (tu *TelegramUpdates) SendFileToChat(fileinput map[string][]*multipart.FileHeader, chatidtosend int64) {
+	mediagroupConfig := tgbotapi.NewMediaGroup(chatidtosend, []interface{}{})
 
 	filestosend := []interface{}{}
 
@@ -244,7 +238,7 @@ func (tu *TelegramUpdates) SendFileToChat(fileinput map[string][]*multipart.File
 	mediagroupConfig.Media = filestosend
 
 	//send file to chat
-	_, err = tu.bot.SendMediaGroup(mediagroupConfig)
+	_, err := tu.bot.SendMediaGroup(mediagroupConfig)
 	if err != nil {
 		tu.log.Error(fmt.Sprintf("Error while sending media group: %v", err))
 		return

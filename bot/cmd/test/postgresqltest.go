@@ -1,0 +1,5 @@
+package postgresqltest
+
+func main() {
+
+}

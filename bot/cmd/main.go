@@ -3,15 +3,32 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/veyanrech/homeWebCamera/bot"
 	"github.com/veyanrech/homeWebCamera/imagecapture/config"
+	"github.com/veyanrech/homeWebCamera/imagecapture/utils"
 )
 
 func main() {
 
-	conf := config.NewConfig()
+	var conf config.Config
+	var filename string
+
+	osgetwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	switch opsys := utils.GetOS(); opsys {
+	default:
+		filename = osgetwd + "/macos.config.json"
+	case "windows":
+		filename = osgetwd + string(os.PathSeparator) + "win.config.json"
+	}
+
+	conf = config.NewConfig(filename)
 
 	if conf == nil { //TODO: on depluy should change to another way of getting confic
 		panic("Config not found")
@@ -32,6 +49,10 @@ func main() {
 
 	http.HandleFunc("/filesreciever", app.RecieveFileHandler)
 
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	go func() {
 		for {
 			upd := <-updchan
@@ -39,7 +60,11 @@ func main() {
 		}
 	}()
 
-	http.ListenAndServeTLS(fmt.Sprintf(":%s", conf.GetString("BOT_PORT")), "../certs/pub.pem", "../certs/private.key", nil)
+	//certs are in the same folder as the binary
+	publocation := osgetwd + "/certs/pub.pem"
+	privlocation := osgetwd + "/certs/private.key"
+
+	http.ListenAndServeTLS(fmt.Sprintf(":%s", conf.GetString("BOT_PORT")), publocation, privlocation, nil)
 
 	select {}
 

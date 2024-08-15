@@ -1,14 +1,21 @@
 package bot
 
-import "net/http"
+import (
+	"net/http"
+	"sync"
+)
 
 type FilesReceriverClient struct {
 	telegramapiInst *TelegramUpdates
+	tokenCache      map[string]int64
+	sncmtx          sync.Mutex
 }
 
 func NewFilesReceriverClient(t *TelegramUpdates) *FilesReceriverClient {
 	return &FilesReceriverClient{
 		telegramapiInst: t,
+		tokenCache:      make(map[string]int64),
+		sncmtx:          sync.Mutex{},
 	}
 }
 
@@ -41,7 +48,24 @@ func (f *FilesReceriverClient) RecieveFileHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	f.telegramapiInst.SendFileToChat(files.File, r.Header.Get("X-Chat-Registration-Token"))
+	var chatinfo chatInfo
+
+	f.sncmtx.Lock()
+	//check if chat is in cache
+	_, ok := f.tokenCache[r.Header.Get("X-Chat-Registration-Token")]
+	if !ok {
+		//get chatid from token
+		chatinfo, err := f.telegramapiInst.db.FindChatIDByToken(r.Header.Get("X-Chat-Registration-Token"))
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		f.tokenCache[r.Header.Get("X-Chat-Registration-Token")] = chatinfo.chatID
+	}
+
+	f.sncmtx.Unlock()
+
+	f.telegramapiInst.SendFileToChat(files.File, chatinfo.chatID)
 
 	// Save file to disk
 	// f.saveFile(file)

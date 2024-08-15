@@ -2,9 +2,13 @@ package dbs
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
+
+	_ "github.com/lib/pq"
+	"github.com/veyanrech/homeWebCamera/imagecapture/config"
 )
 
 type PostgresDB struct {
@@ -19,9 +23,15 @@ func (p *PostgresDB) Ping() error {
 	return p.db.Ping()
 }
 
-func NewPostgres() DBi {
+func NewPostgres(c config.Config) DBi {
 
-	db, err := sql.Open("postgres", "user=postgres dbname=postgres sslmode=disable")
+	user := c.GetString("POSTGRES_USER")
+	dbname := c.GetString("POSTGRES_DBNAME")
+	password := c.GetString("POSTGRES_PASSWORD")
+	host := c.GetString("POSTGRES_HOST")
+	port := c.GetString("POSTGRES_PORT")
+
+	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s port=%s sslmode=disable", user, dbname, password, host, port))
 	if err != nil {
 		panic(err)
 	}

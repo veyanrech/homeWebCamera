@@ -105,6 +105,22 @@ type chatInfo struct {
 	active bool
 }
 
+func (c *chatInfo) GetID() int {
+	return c.id
+}
+
+func (c *chatInfo) GetChatID() int64 {
+	return c.chatID
+}
+
+func (c *chatInfo) GetToken() string {
+	return c.token
+}
+
+func (c *chatInfo) GetActive() bool {
+	return c.active
+}
+
 func (db *DBOps) FindChatIDByToken(token string) (chatInfo, error) {
 	sqlq := "SELECT id, chat_id, token, active FROM registeredchats WHERE token = $1 AND active = TRUE"
 

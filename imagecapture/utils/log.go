@@ -12,23 +12,35 @@ type Logger interface {
 }
 
 type consoleLogger struct {
+	disable bool
 }
 
 func NewConsoleLogger() Logger {
-	return &consoleLogger{}
+	return &consoleLogger{
+		disable: false,
+	}
+}
+
+func (cl *consoleLogger) Disable() {
+	cl.disable = true
 }
 
 func (cl *consoleLogger) Info(msg string) {
-	fmt.Println("INFO:", msg)
+	if !cl.disable {
+		fmt.Println("INFO:", msg)
+	}
 }
 
 func (cl *consoleLogger) Error(msg string) {
-	fmt.Println("ERROR:", msg)
+	if !cl.disable {
+		fmt.Println("ERROR:", msg)
+	}
 }
 
 type fileLogger struct {
 	filepathInfo  *os.File
 	filepathError *os.File
+	disable       bool
 }
 
 func NewFileLogger(infof, errorf string) Logger {
@@ -61,12 +73,22 @@ func NewFileLogger(infof, errorf string) Logger {
 	return res
 }
 
+func (fl *fileLogger) Disable() {
+	fl.disable = true
+}
+
 func (fl *fileLogger) Info(msg string) {
+	if fl.disable {
+		return
+	}
 	logtime := time.Now().Format("01.02.2006 15:04:05.000")
 	fmt.Fprintf(fl.filepathInfo, "%s: %s\n", logtime, msg)
 }
 
 func (fl *fileLogger) Error(msg string) {
+	if fl.disable {
+		return
+	}
 	logtime := time.Now().Format("01.02.2006 15:04:05.000")
 	fmt.Fprintf(fl.filepathError, "%s: %s\n", logtime, msg)
 }
