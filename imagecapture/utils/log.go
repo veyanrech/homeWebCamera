@@ -9,7 +9,7 @@ import (
 type Logger interface {
 	Info(string)
 	Error(string)
-	Disable()
+	Disable() //don't want to log on google cloud
 }
 
 type consoleLogger struct {
