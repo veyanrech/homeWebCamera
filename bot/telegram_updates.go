@@ -26,17 +26,27 @@ type TelegramUpdates struct {
 }
 
 func NewTelegramUpdates(b *tgbotapi.BotAPI, conf config.Config) *TelegramUpdates {
-	return &TelegramUpdates{
+	res := &TelegramUpdates{
 		bot:  b,
-		db:   NewDB(),
+		db:   NewDB(conf),
 		conf: conf,
 		log:  utils.NewFileLogger("telegram_updates.log", "telegram_updates_errors.log"),
 	}
+
+	if os.Getenv("ENVIRONMENT") == "PROD" {
+		res.log.Disable()
+	}
+
+	return res
 }
 
 type WebhookRequest struct {
 	URL         string `json:"url"`
 	Certificate string `json:"certificate"`
+}
+
+func (tu *TelegramUpdates) PingDB() error {
+	return tu.db.Ping()
 }
 
 func (tu *TelegramUpdates) SetWebhookOnStart() {

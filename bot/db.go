@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/veyanrech/homeWebCamera/bot/dbs"
+	"github.com/veyanrech/homeWebCamera/imagecapture/config"
 	"github.com/veyanrech/homeWebCamera/imagecapture/utils"
 )
 
@@ -18,7 +19,7 @@ type DBOps struct {
 	logger utils.Logger
 }
 
-func NewDB() *DBOps {
+func NewDB(c config.Config) *DBOps {
 
 	//create postgres db driver
 
@@ -26,14 +27,14 @@ func NewDB() *DBOps {
 
 	environment := "dev"
 
-	if os.Getenv("webcamerabot_env") == "prod" {
-		environment = "prod"
+	if os.Getenv("ENVIRONMENT") == "PROD" {
+		environment = "PROD"
 	}
 
 	if environment == "dev" {
 		sqldb = dbs.NewLocalFB()
 	} else {
-		sqldb = dbs.NewPostgres()
+		sqldb = dbs.NewPostgres(c)
 	}
 
 	err := sqldb.Ping()
@@ -52,6 +53,10 @@ func NewDB() *DBOps {
 	}
 
 	return res
+}
+
+func (db *DBOps) Ping() error {
+	return db.db.Ping()
 }
 
 func (db *DBOps) DeactivateChatID(chatID int64) error {

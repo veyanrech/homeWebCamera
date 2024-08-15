@@ -9,6 +9,7 @@ import (
 type Logger interface {
 	Info(string)
 	Error(string)
+	Disable()
 }
 
 type consoleLogger struct {

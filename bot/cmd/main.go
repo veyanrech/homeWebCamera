@@ -50,7 +50,25 @@ func main() {
 	http.HandleFunc("/filesreciever", app.RecieveFileHandler)
 
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+
+		respmap := make(map[string]string)
+
+		//check db conenction also
+		err := botInst.PingDB()
+		if err != nil {
+			respmap["db"] = "error"
+		} else {
+			respmap["db"] = "ok"
+		}
+
+		respmap["bot"] = "ok"
+
 		w.WriteHeader(http.StatusOK)
+
+		for k, v := range respmap {
+			w.Write([]byte(fmt.Sprintf("%s: %s\n", k, v)))
+		}
+
 	})
 
 	go func() {
