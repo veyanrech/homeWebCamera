@@ -18,7 +18,13 @@ COPY . .
 # Skaffold passes in debug-oriented compiler flags
 ARG SKAFFOLD_GO_GCFLAGS
 RUN echo "Go gcflags: ${SKAFFOLD_GO_GCFLAGS}"
-RUN go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -mod=readonly -v -o /app
+
+WORKDIR /tgbot/cmd
+
+RUN go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -mod=readonly -v -o ./builds
+
+COPY /tgbot/cmd/macos.config.json /tgbot/cmd/builds/macos.config.json
+COPY /tgbot/certs /tgbot/cmd/builds/certs
 
 # Now create separate deployment image
 FROM gcr.io/distroless/static-debian11
@@ -30,7 +36,7 @@ ENV GOTRACEBACK=single
 ENV ENVIRONMENT=production
 
 # Copy template & assets
-WORKDIR /tgbot
-COPY --from=build /app ./app
+WORKDIR /app
+COPY --from=build /tgbot/cmd/builds ./app
 
 ENTRYPOINT ["./app"]
