@@ -1,4 +1,0 @@
-08.12.2024 22:26:05.828: Error while finding chat id: sql: Scan error on column index 0, name "id": converting NULL to int is unsupported
-08.12.2024 22:26:29.084: Error while registering chat: sql: Scan error on column index 0, name "id": converting NULL to int is unsupported
-08.12.2024 22:28:06.320: Error while finding chat id: sql: Scan error on column index 0, name "id": destination pointer is nil
-08.12.2024 22:28:06.320: Error while registering chat: sql: Scan error on column index 0, name "id": destination pointer is nil
