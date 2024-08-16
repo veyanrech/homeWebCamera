@@ -9,5 +9,7 @@
 /bot/cmd/__debug*
 /bot/certs/
 /bot/cmd/builds/
-/bot/cmd/logs/
-/bot/cmd/example.db
+#logs
+*.log
+#db
+*.db
