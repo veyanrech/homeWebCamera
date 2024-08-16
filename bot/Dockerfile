@@ -33,7 +33,7 @@ FROM gcr.io/distroless/static-debian11
 # Default behavior - a failure prints a stack trace for the current goroutine.
 # See https://golang.org/pkg/runtime/
 ENV GOTRACEBACK=single
-ENV ENVIRONMENT=production
+ENV ENVIRONMENT=productiontest
 
 # Copy template & assets
 WORKDIR /app
