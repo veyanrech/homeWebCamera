@@ -29,9 +29,9 @@ func NewPostgres(c config.Config) DBi {
 	dbname := c.GetString("POSTGRES_DBNAME")
 	password := c.GetString("POSTGRES_PASSWORD")
 	host := c.GetString("POSTGRES_HOST")
-	port := c.GetString("POSTGRES_PORT")
+	// port := c.GetString("POSTGRES_PORT")
 
-	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s port=%s sslmode=disable", user, dbname, password, host, port))
+	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s", user, dbname, password, host))
 	if err != nil {
 		panic(err)
 	}
