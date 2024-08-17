@@ -5,7 +5,7 @@ WORKDIR /tgbot
 
 # Avoid dynamic linking of libc, since we are using a different deployment image
 # that might have a different version of libc.
-ENV CGO_ENABLED=0
+ENV CGO_ENABLED=1
 
 # Install dependencies in go.mod and go.sum
 COPY go.mod go.sum ./
@@ -21,13 +21,14 @@ RUN echo "Go gcflags: ${SKAFFOLD_GO_GCFLAGS}"
 
 WORKDIR /tgbot/cmd
 
-RUN go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -mod=readonly -v -o ./builds
+RUN go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -mod=readonly -v -o ./builds/
 
-COPY /tgbot/cmd/macos.config.json /tgbot/cmd/builds/macos.config.json
-COPY /tgbot/certs /tgbot/cmd/builds/certs
+RUN cp /tgbot/cmd/macos.config.json /tgbot/cmd/builds/macos.config.json
+RUN cp -r /tgbot/certs /tgbot/cmd/builds/certs
 
 # Now create separate deployment image
-FROM gcr.io/distroless/static-debian11
+# FROM gcr.io/distroless/static-debian11
+FROM golang:1.21
 
 # Definition of this variable is used by 'skaffold debug' to identify a golang binary.
 # Default behavior - a failure prints a stack trace for the current goroutine.
@@ -37,6 +38,6 @@ ENV ENVIRONMENT=productiontest
 
 # Copy template & assets
 WORKDIR /app
-COPY --from=build /tgbot/cmd/builds ./app
+COPY --from=build /tgbot/cmd/builds/ /app
 
-ENTRYPOINT ["./app"]
+ENTRYPOINT ["/app/cmd"]
