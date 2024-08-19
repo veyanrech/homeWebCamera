@@ -79,10 +79,12 @@ func main() {
 	}()
 
 	//certs are in the same folder as the binary
-	publocation := osgetwd + "/certs/pub.pem"
-	privlocation := osgetwd + "/certs/private.key"
+	// publocation := osgetwd + "/certs/pub.pem"
+	// privlocation := osgetwd + "/certs/private.key"
 
-	http.ListenAndServeTLS(fmt.Sprintf(":%s", conf.GetString("BOT_PORT")), publocation, privlocation, nil)
+	// http.ListenAndServeTLS(fmt.Sprintf(":%s", conf.GetString("BOT_PORT")), publocation, privlocation, nil)
+
+	http.ListenAndServe(fmt.Sprintf(":%s", conf.GetString("BOT_PORT")), nil)
 
 	select {}
 

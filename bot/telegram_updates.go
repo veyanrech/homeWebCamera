@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -70,15 +69,16 @@ func (tu *TelegramUpdates) SetWebhookOnStart() {
 	writer := multipart.NewWriter(body)
 
 	_ = writer.WriteField("url", url)
-	part, err := writer.CreateFormFile("certificate", osgetwd+"/certs/pub.pem")
-	if err != nil {
-		log.Fatalf("Failed to create form file: %v", err)
-	}
 
-	_, err = io.Copy(part, bufio.NewReader(bytes.NewBuffer(certificatestringFromFile)))
-	if err != nil {
-		log.Fatalf("Failed to copy file: %v", err)
-	}
+	// part, err := writer.CreateFormFile("certificate", osgetwd+"/certs/pub.pem")
+	// if err != nil {
+	// log.Fatalf("Failed to create form file: %v", err)
+	// }
+
+	// _, err = io.Copy(part, bufio.NewReader(bytes.NewBuffer(certificatestringFromFile)))
+	// if err != nil {
+	// log.Fatalf("Failed to copy file: %v", err)
+	// }
 
 	err = writer.Close()
 	if err != nil {
