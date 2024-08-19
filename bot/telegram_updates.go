@@ -16,7 +16,7 @@ import (
 	"github.com/veyanrech/homeWebCamera/imagecapture/utils"
 )
 
-var commands []string = []string{"/start", "/help", "/register", "/stop", "/resume"}
+var commands []string = []string{"/start", "/help", "/register", "/stop", "/resume", "/ping"}
 
 type TelegramUpdates struct {
 	log  utils.Logger
@@ -158,8 +158,16 @@ func (p *privateMessageProcessor) processMessage() {
 			p.telegramUpdatesInst.Resume()
 		case "register":
 			p.registerChat()
+		case "ping":
+			p.processPing()
 		}
 	}
+}
+
+func (p *privateMessageProcessor) processPing() {
+	chatid := p.updateInfo.Message.Chat.ID
+	msg := tgbotapi.NewMessage(chatid, "pong")
+	p.telegramUpdatesInst.bot.Send(msg)
 }
 
 func (p *privateMessageProcessor) registerChat() {
