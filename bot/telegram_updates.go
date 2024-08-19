@@ -52,18 +52,18 @@ func (tu *TelegramUpdates) SetWebhookOnStart() {
 	token := tu.bot.Token
 	url := tu.conf.GetString("TELEGRAM_WEBHOOK_URL")
 
-	osgetwd, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
+	// osgetwd, err := os.Getwd()
+	// if err != nil {
+	// panic(err)
+	// }
 
 	// Prepare the API endpoint URL
 	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/setWebhook?", token)
 
-	certificatestringFromFile, err := os.ReadFile(osgetwd + "/certs/pub.pem")
-	if err != nil {
-		log.Fatalf("Failed to read certificate file: %v", err)
-	}
+	// certificatestringFromFile, err := os.ReadFile(osgetwd + "/certs/pub.pem")
+	// if err != nil {
+	// log.Fatalf("Failed to read certificate file: %v", err)
+	// }
 
 	body := bytes.NewBuffer([]byte{})
 	writer := multipart.NewWriter(body)
@@ -80,7 +80,7 @@ func (tu *TelegramUpdates) SetWebhookOnStart() {
 	// log.Fatalf("Failed to copy file: %v", err)
 	// }
 
-	err = writer.Close()
+	err := writer.Close()
 	if err != nil {
 		log.Fatalf("Failed to close writer: %v", err)
 	}
