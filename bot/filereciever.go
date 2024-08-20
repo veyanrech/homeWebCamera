@@ -52,7 +52,7 @@ func (f *FilesReceriverClient) RecieveFileHandler(w http.ResponseWriter, r *http
 
 	f.sncmtx.Lock()
 	//check if chat is in cache
-	_, ok := f.tokenCache[r.Header.Get("X-Chat-Registration-Token")]
+	val, ok := f.tokenCache[r.Header.Get("X-Chat-Registration-Token")]
 	if !ok {
 		//get chatid from token
 		chatinfo, err := f.telegramapiInst.db.FindChatIDByToken(r.Header.Get("X-Chat-Registration-Token"))
@@ -62,6 +62,8 @@ func (f *FilesReceriverClient) RecieveFileHandler(w http.ResponseWriter, r *http
 		}
 		f.tokenCache[r.Header.Get("X-Chat-Registration-Token")] = chatinfo.chatID
 	}
+
+	chatinfo.chatID = val
 
 	f.sncmtx.Unlock()
 
