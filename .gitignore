@@ -8,6 +8,7 @@
 *.log
 /bot/cmd/__debug*
 /bot/certs/
+/bot/cmd/certs/
 /bot/cmd/builds/
 #logs
 *.log
