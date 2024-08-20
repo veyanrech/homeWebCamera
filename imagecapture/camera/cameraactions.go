@@ -1,8 +1,13 @@
 package camera
 
 import (
+	"errors"
+	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
+	"runtime"
+	"strings"
 	"syscall"
 	"time"
 
@@ -41,8 +46,19 @@ func NewCameraService(cam Camera, c config.Config, l utils.Logger) *CameraServic
 	//test if the camera is working
 	err := cam.TakePicture()
 	if err != nil {
-		l.Error("Camera is not working")
-		panic(err)
+		//one attempt to kill ffmpeg
+		err = killFFMPEG()
+		if err != nil {
+			l.Error("Error killing ffmpeg process")
+			panic(err)
+		} else {
+			//second attempt to take picture
+			err = cam.TakePicture()
+			if err != nil {
+				l.Error("Error taking picture")
+				panic(err)
+			}
+		}
 	}
 
 	return &CameraService{
@@ -62,7 +78,7 @@ func (cs *CameraService) TakePictureEvery() {
 		for {
 			select {
 			case <-ticker.C:
-				err := cs.cam.TakePicture()
+				err := cs.TakePictureWithFail()
 				if err != nil {
 					panic(err)
 				}
@@ -71,6 +87,96 @@ func (cs *CameraService) TakePictureEvery() {
 			}
 		}
 	}()
+}
+
+func (cs *CameraService) TakePictureWithFail() error {
+	err := cs.cam.TakePicture()
+	if err != nil {
+		//one attempt to kill ffmpeg
+		err = killFFMPEG()
+		if err != nil {
+			cs.l.Error("Error killing ffmpeg process")
+			return err
+		}
+		//second attempt to take picture
+		err = cs.cam.TakePicture()
+		if err != nil {
+			cs.l.Error("Error taking picture")
+			return err
+		}
+	}
+	return nil
+}
+
+func killFFMPEG() error {
+	switch os := utils.GetOS(); os {
+	case "darwin", "linux":
+		return killNixFFMPEG()
+	case "windows":
+		return killWinFFMPEG()
+	}
+
+	return errors.New("OS not supported")
+}
+
+func killNixFFMPEG() error {
+	var psCommand, grepCommand *exec.Cmd
+	psCommand = exec.Command("ps", "aux")
+	grepCommand = exec.Command("grep", "ffmpeg")
+	return KillFFMPEGBYID(psCommand, grepCommand)
+}
+
+func killWinFFMPEG() error {
+	var psCommand, grepCommand *exec.Cmd
+	psCommand = exec.Command("tasklist")
+	grepCommand = exec.Command("findstr", "ffmpeg")
+	return KillFFMPEGBYID(psCommand, grepCommand)
+}
+
+func KillFFMPEGBYID(psc, grepc *exec.Cmd) error {
+
+	// Get the list of processes
+	psOutput, err := psc.Output()
+	if err != nil {
+		return err
+	}
+
+	// Filter for ffmpeg process
+	grepc.Stdin = strings.NewReader(string(psOutput))
+	grepOutput, err := grepc.Output()
+	if err != nil {
+		return err
+	}
+
+	// Parse and kill the process
+	for _, line := range strings.Split(string(grepOutput), "\n") {
+		if strings.Contains(line, "ffmpeg") {
+			fields := strings.Fields(line)
+			if len(fields) > 1 {
+				pid := fields[1]
+				return killProcess(pid)
+			}
+		}
+	}
+	return nil
+
+}
+
+func killProcess(pid string) error {
+	var killCommand *exec.Cmd
+	switch os := runtime.GOOS; os {
+	case "windows":
+		killCommand = exec.Command("taskkill", "/F", "/PID", pid)
+	case "darwin", "linux":
+		killCommand = exec.Command("kill", "-9", pid)
+	default:
+		return fmt.Errorf("unsupported operating system: %s", os)
+	}
+
+	if err := killCommand.Run(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func createFolder() string {
