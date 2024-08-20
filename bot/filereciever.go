@@ -61,9 +61,9 @@ func (f *FilesReceriverClient) RecieveFileHandler(w http.ResponseWriter, r *http
 			return
 		}
 		f.tokenCache[r.Header.Get("X-Chat-Registration-Token")] = chatinfo.chatID
+	} else {
+		chatinfo.chatID = val
 	}
-
-	chatinfo.chatID = val
 
 	f.sncmtx.Unlock()
 
