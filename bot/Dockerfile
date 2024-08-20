@@ -36,7 +36,7 @@ FROM golang:latest
 # Default behavior - a failure prints a stack trace for the current goroutine.
 # See https://golang.org/pkg/runtime/
 ENV GOTRACEBACK=single
-ENV ENVIRONMENT=productiontest
+ENV ENVIRONMENT=PROD
 
 WORKDIR /app
 

@@ -3,7 +3,6 @@ package bot
 import (
 	"database/sql"
 	"fmt"
-	"os"
 
 	"github.com/veyanrech/homeWebCamera/bot/dbs"
 	"github.com/veyanrech/homeWebCamera/imagecapture/config"
@@ -26,13 +25,7 @@ func NewDB(c config.Config) *DBOps {
 
 	var sqldb dbs.DBi
 
-	environment := "dev"
-
-	if os.Getenv("ENVIRONMENT") == "PROD" {
-		environment = "PROD"
-	}
-
-	if environment == "dev" {
+	if c.GetString("DB_TYPE") == "sqlite" {
 		sqldb = dbs.NewLocalFB()
 	} else {
 		sqldb = dbs.NewPostgres(c)
