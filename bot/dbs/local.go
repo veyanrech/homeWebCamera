@@ -17,6 +17,19 @@ func (l *LocalFB) ReturnDB() *sql.DB {
 	return l.db
 }
 
+func (l *LocalFB) Init() error {
+	sqlq := `CREATE TABLE IF NOT EXISTS registeredchats (
+		id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		chat_id BIGINT NOT NULL,
+		token TEXT NOT NULL,
+		active BOOLEAN DEFAULT TRUE
+	);`
+
+	_, err := l.db.Exec(sqlq)
+
+	return err
+}
+
 func (l *LocalFB) Ping() error {
 	return l.db.Ping()
 }

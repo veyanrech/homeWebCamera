@@ -2,6 +2,7 @@ package bot
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 
 	"github.com/veyanrech/homeWebCamera/bot/dbs"
@@ -47,7 +48,11 @@ func NewDB(c config.Config) *DBOps {
 		logger: utils.NewFileLogger("db_info.log", "db_error.log"),
 	}
 
-	err = res.Init()
+	if c.GetString("LOGS_DISABLED") == "true" {
+		res.logger.Disable()
+	}
+
+	err = res.Init(sqldb)
 	if err != nil {
 		panic(err)
 	}
@@ -161,7 +166,13 @@ func (db *DBOps) FindChatID(chatID int64) (chatInfo, error) {
 	var resid int
 
 	err := row.Scan(&resid, &reschatID, &reschatToken, &reschatActive)
+
 	if err != nil {
+
+		if err == sql.ErrNoRows {
+			return chatInfo{}, nil
+		}
+
 		return chatInfo{}, err
 	}
 
@@ -195,16 +206,18 @@ func (db *DBOps) RegisterChatID(chatID int64, token string) error {
 	return nil
 }
 
-func (db *DBOps) Init() error {
-	sqlq := `CREATE TABLE IF NOT EXISTS registeredchats (
-		id SERIAL PRIMARY KEY NOT NULL,
-		chat_id BIGINT NOT NULL,
-		token TEXT NOT NULL,
-		active BOOLEAN DEFAULT TRUE
-	);`
-	_, err := db.db.Exec(sqlq)
-	if err != nil {
+func (db *DBOps) Init(dbinst dbs.DBi) error {
+	initable, ok := dbinst.(dbs.DBInitiater)
+
+	if !ok {
 		db.logger.Error("Failed to create table chat_ids")
+		return fmt.Errorf("Failed to create table chat_ids")
+	}
+
+	err := initable.Init()
+
+	if err != nil {
+		db.logger.Error(err.Error())
 	}
 
 	return err

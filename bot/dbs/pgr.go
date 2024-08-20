@@ -15,6 +15,19 @@ type PostgresDB struct {
 	db *sql.DB
 }
 
+func (l *PostgresDB) Init() error {
+	sqlq := `CREATE TABLE IF NOT EXISTS registeredchats (
+		id SERIAL PRIMARY NOT NULL,
+		chat_id BIGINT NOT NULL,
+		token TEXT NOT NULL,
+		active BOOLEAN DEFAULT TRUE
+	);`
+
+	_, err := l.db.Exec(sqlq)
+
+	return err
+}
+
 func (p *PostgresDB) ReturnDB() *sql.DB {
 	return p.db
 }

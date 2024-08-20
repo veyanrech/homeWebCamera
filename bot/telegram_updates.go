@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -32,7 +33,7 @@ func NewTelegramUpdates(b *tgbotapi.BotAPI, conf config.Config) *TelegramUpdates
 		log:  utils.NewFileLogger("telegram_updates.log", "telegram_updates_errors.log"),
 	}
 
-	if os.Getenv("ENVIRONMENT") == "PROD" {
+	if os.Getenv("ENVIRONMENT") == "PROD" || conf.GetString("LOGS_DISABLED") == "true" {
 		res.log.Disable()
 	}
 
@@ -50,35 +51,43 @@ func (tu *TelegramUpdates) PingDB() error {
 
 func (tu *TelegramUpdates) SetWebhookOnStart() {
 	token := tu.bot.Token
+
 	url := tu.conf.GetString("TELEGRAM_WEBHOOK_URL")
 
-	// osgetwd, err := os.Getwd()
-	// if err != nil {
-	// panic(err)
-	// }
+	debugstr := tu.conf.GetString("DEBUG")
+	if debugstr == "true" {
+		url = tu.conf.GetString("TELEGRAM_WEBHOOK_URL_DEBUG")
+	}
 
 	// Prepare the API endpoint URL
 	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/setWebhook?", token)
-
-	// certificatestringFromFile, err := os.ReadFile(osgetwd + "/certs/pub.pem")
-	// if err != nil {
-	// log.Fatalf("Failed to read certificate file: %v", err)
-	// }
 
 	body := bytes.NewBuffer([]byte{})
 	writer := multipart.NewWriter(body)
 
 	_ = writer.WriteField("url", url)
 
-	// part, err := writer.CreateFormFile("certificate", osgetwd+"/certs/pub.pem")
-	// if err != nil {
-	// log.Fatalf("Failed to create form file: %v", err)
-	// }
+	if debugstr == "true" {
+		osgetwd, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
 
-	// _, err = io.Copy(part, bufio.NewReader(bytes.NewBuffer(certificatestringFromFile)))
-	// if err != nil {
-	// log.Fatalf("Failed to copy file: %v", err)
-	// }
+		certificatestringFromFile, err := os.ReadFile(osgetwd + "/certs/pub.pem")
+		if err != nil {
+			log.Fatalf("Failed to read certificate file: %v", err)
+		}
+
+		part, err := writer.CreateFormFile("certificate", osgetwd+"/certs/pub.pem")
+		if err != nil {
+			log.Fatalf("Failed to create form file: %v", err)
+		}
+
+		_, err = io.Copy(part, bufio.NewReader(bytes.NewBuffer(certificatestringFromFile)))
+		if err != nil {
+			log.Fatalf("Failed to copy file: %v", err)
+		}
+	}
 
 	err := writer.Close()
 	if err != nil {
