@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"fmt"
 	"io"
@@ -133,7 +134,11 @@ func (c *Client) sendFile(delqu *RoundBufferQueue, allowToDeleteCh chan bool) {
 
 		writer.Close()
 
-		req, err := http.NewRequest("POST", c.conf.GetString("photos_receiver_url"), &formdataBody)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		// req, err := http.NewRequest("POST", c.conf.GetString("photos_receiver_url"), &formdataBody)
+		req, err := http.NewRequestWithContext(ctx, "POST", c.conf.GetString("photos_receiver_url"), &formdataBody)
 		if err != nil {
 			c.l.Error(fmt.Sprint("Error creating request: ", err))
 			fopen.Close()
