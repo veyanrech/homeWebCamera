@@ -178,7 +178,7 @@ func (db *DBOps) FindChatID(chatID int64) (chatInfo, error) {
 }
 
 func (db *DBOps) RegisterChatID(chatID int64, token string) error {
-	sqlq := "INSERT INTO registeredchats (chat_id, token) VALUES (?, ?)"
+	sqlq := "INSERT INTO registeredchats (chat_id, token) VALUES ($1, $2)"
 
 	tx, err := db.db.Begin()
 	if err != nil {
