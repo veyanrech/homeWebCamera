@@ -17,7 +17,7 @@ type PostgresDB struct {
 
 func (l *PostgresDB) Init() error {
 	sqlq := `CREATE TABLE IF NOT EXISTS registeredchats (
-		id SERIAL PRIMARY NOT NULL,
+		id SERIAL PRIMARY KEY,
 		chat_id BIGINT NOT NULL,
 		token TEXT NOT NULL,
 		active BOOLEAN DEFAULT TRUE
