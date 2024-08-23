@@ -213,5 +213,14 @@ func (db *DBOps) Init(dbinst dbs.DBi) error {
 		db.logger.Error(err.Error())
 	}
 
+	db.test()
+
 	return err
+}
+
+func (db *DBOps) test() {
+	ee := db.RegisterChatID(123, "test")
+	fmt.Println(ee)
+	r, e := db.FindChatID(123)
+	fmt.Println(r, e)
 }
