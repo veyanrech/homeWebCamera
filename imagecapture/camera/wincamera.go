@@ -1,9 +1,11 @@
 package camera
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/veyanrech/homeWebCamera/imagecapture/config"
 	"github.com/veyanrech/homeWebCamera/imagecapture/utils"
@@ -77,11 +79,17 @@ func (c *winCamera) runWinCommand(command string) error {
 }
 
 func (c *winCamera) runWinCommandsplitted(command []string) error {
-	cmd := exec.Command(command[0], command[1:]...)
 
-	b, err := cmd.CombinedOutput()
+	bctx := context.Background()
 
-	c.l.Info(string(b))
+	wtoctx, wtxctocancel := context.WithTimeout(bctx, 10*time.Second)
+	defer wtxctocancel()
+
+	// cmd := exec.Command(command[0], command[1:]...)
+	cmd := exec.CommandContext(wtoctx, command[0], command[1:]...)
+	_, err := cmd.CombinedOutput()
+
+	// c.l.Info(string(b))
 
 	if err != nil {
 		return err
