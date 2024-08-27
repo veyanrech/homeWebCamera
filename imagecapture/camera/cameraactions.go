@@ -23,6 +23,19 @@ func NewCameraByOS(c config.Config, l utils.Logger) Camera {
 
 	picdir := createFolder()
 
+	//clean content of the folder, but not the folder itself
+	folderContents, err := os.ReadDir(picdir)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, file := range folderContents {
+		err = os.Remove(picdir + string(os.PathSeparator) + file.Name())
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	c.Set("pictures_folder", picdir)
 
 	switch os := utils.GetOS(); os {
