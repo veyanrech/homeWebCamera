@@ -59,6 +59,7 @@ func (c *winCamera) TakePicture() error {
 			c.l.Error(err.Error())
 			return err
 		}
+		time.Sleep(10 * time.Second)
 	}
 
 	return nil
