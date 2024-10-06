@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+type LogLevel int
+
+const (
+	INFO LogLevel = iota << 1
+	ERROR
+)
+
 type Logger interface {
 	Info(string)
 	Error(string)
@@ -13,12 +20,14 @@ type Logger interface {
 }
 
 type consoleLogger struct {
-	disable bool
+	disable  bool
+	loglevel LogLevel
 }
 
-func NewConsoleLogger() Logger {
+func NewConsoleLogger(ll LogLevel) Logger {
 	return &consoleLogger{
-		disable: false,
+		disable:  false,
+		loglevel: ll,
 	}
 }
 
@@ -42,10 +51,13 @@ type fileLogger struct {
 	filepathInfo  *os.File
 	filepathError *os.File
 	disable       bool
+	loglevel      LogLevel
 }
 
-func NewFileLogger(infof, errorf string) Logger {
-	res := &fileLogger{}
+func NewFileLogger(infof, errorf string, ll LogLevel) Logger {
+	res := &fileLogger{
+		loglevel: ll,
+	}
 
 	path, err := os.Getwd()
 	if err != nil {
@@ -79,7 +91,7 @@ func (fl *fileLogger) Disable() {
 }
 
 func (fl *fileLogger) Info(msg string) {
-	if fl.disable {
+	if fl.disable || fl.loglevel == ERROR {
 		return
 	}
 	logtime := time.Now().Format("01.02.2006 15:04:05.000")

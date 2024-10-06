@@ -11,8 +11,6 @@ import (
 )
 
 func main() {
-	//run Camera Capturing
-	lggr := utils.NewFileLogger("info.log", "error.log")
 
 	var conf config.Config
 	var filename string
@@ -25,6 +23,11 @@ func main() {
 	}
 
 	conf = config.NewConfig(filename)
+
+	loglevel := conf.GetInt("log_level")
+
+	//run Camera Capturing
+	lggr := utils.NewFileLogger("info.log", "error.log", utils.LogLevel(loglevel))
 
 	cam := camera.NewCameraByOS(conf, lggr)
 
