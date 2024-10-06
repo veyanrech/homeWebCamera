@@ -72,7 +72,7 @@ func (c *Client) Run() {
 func (c *Client) loadFileToQueue() {
 	fs, err := os.ReadDir(c.conf.GetString("pictures_folder"))
 	if err != nil {
-		panic(err)
+		panic(err) //no need to recover
 	}
 
 	for _, f := range fs {

@@ -29,7 +29,7 @@ func main() {
 	cam := camera.NewCameraByOS(conf, lggr)
 
 	if cam == nil {
-		panic("Camera not found")
+		panic("Camera not found") //no need to recover
 	}
 
 	cs := camera.NewCameraService(cam, conf, lggr)

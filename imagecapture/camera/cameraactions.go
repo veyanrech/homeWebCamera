@@ -26,13 +26,13 @@ func NewCameraByOS(c config.Config, l utils.Logger) Camera {
 	//clean content of the folder, but not the folder itself
 	folderContents, err := os.ReadDir(picdir)
 	if err != nil {
-		panic(err)
+		panic(err) //no nooed to recover,
 	}
 
 	for _, file := range folderContents {
 		err = os.Remove(picdir + string(os.PathSeparator) + file.Name())
 		if err != nil {
-			panic(err)
+			panic(err) //no nooed to recover,
 		}
 	}
 
@@ -56,6 +56,12 @@ type CameraService struct {
 
 func NewCameraService(cam Camera, c config.Config, l utils.Logger) *CameraService {
 
+	defer func() {
+		if r := recover(); r != nil {
+			l.Error("Error creating camera service")
+		}
+	}()
+
 	//test if the camera is working
 	err := cam.TakePicture()
 	if err != nil {
@@ -63,13 +69,13 @@ func NewCameraService(cam Camera, c config.Config, l utils.Logger) *CameraServic
 		err = killFFMPEG()
 		if err != nil {
 			l.Error("Error killing ffmpeg process")
-			panic(err)
+			panic(err) //recovered
 		} else {
 			//second attempt to take picture
 			err = cam.TakePicture()
 			if err != nil {
 				l.Error("Error taking picture")
-				panic(err)
+				panic(err) //recovered
 			}
 		}
 	}
@@ -83,6 +89,13 @@ func NewCameraService(cam Camera, c config.Config, l utils.Logger) *CameraServic
 
 func (cs *CameraService) TakePictureEvery() {
 	go func() {
+
+		defer func() {
+			if r := recover(); r != nil {
+				cs.l.Error("Error taking picture")
+			}
+		}()
+
 		signalChannel := make(chan os.Signal, 1)
 		signal.Notify(signalChannel, syscall.SIGINT, syscall.SIGTERM)
 
@@ -93,7 +106,7 @@ func (cs *CameraService) TakePictureEvery() {
 			case <-ticker.C:
 				err := cs.TakePictureWithFail()
 				if err != nil {
-					panic(err)
+					panic(err) //recovered
 				}
 			case <-signalChannel:
 				os.Exit(0)
@@ -196,7 +209,7 @@ func createFolder() string {
 	//get the location where the program is running
 	dir, err := os.Getwd()
 	if err != nil {
-		panic(err)
+		panic(err) //no nooed to recover,
 	}
 
 	folder := dir + string(os.PathSeparator) + "pictures"
@@ -204,7 +217,7 @@ func createFolder() string {
 	//create folder
 	err = os.MkdirAll(folder, os.ModePerm)
 	if err != nil {
-		panic(err)
+		panic(err) //no nooed to recover,
 	}
 
 	return folder
