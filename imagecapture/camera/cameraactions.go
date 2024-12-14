@@ -90,9 +90,12 @@ func NewCameraService(cam Camera, c config.Config, l utils.Logger) *CameraServic
 func (cs *CameraService) TakePictureEvery() {
 	go func() {
 
+		var err error
+
 		defer func() {
 			if r := recover(); r != nil {
-				cs.l.Error("Error taking picture")
+				cs.l.Error(fmt.Sprint("Error taking picture ", err.Error()))
+				cs.TakePictureEvery() //restart the service
 			}
 		}()
 
@@ -104,7 +107,7 @@ func (cs *CameraService) TakePictureEvery() {
 		for {
 			select {
 			case <-ticker.C:
-				err := cs.TakePictureWithFail()
+				err = cs.TakePictureWithFail()
 				if err != nil {
 					panic(err) //recovered
 				}

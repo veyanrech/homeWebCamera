@@ -233,6 +233,11 @@ func (tu *TelegramUpdates) RegisterChat(channelid int64) (string, error) {
 
 }
 
+func (tu *TelegramUpdates) SendText(chatid int64, text string) {
+	msg := tgbotapi.NewMessage(chatid, text)
+	tu.bot.Send(msg)
+}
+
 func (tu *TelegramUpdates) SendFileToChat(fileinput map[string][]*multipart.FileHeader, chatidtosend int64) {
 	mediagroupConfig := tgbotapi.NewMediaGroup(chatidtosend, []interface{}{})
 

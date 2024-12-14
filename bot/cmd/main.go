@@ -49,6 +49,8 @@ func main() {
 
 	http.HandleFunc("/filesreciever", app.RecieveFileHandler)
 
+	http.HandleFunc("/textreciever", app.Ping)
+
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 
 		respmap := make(map[string]string)
