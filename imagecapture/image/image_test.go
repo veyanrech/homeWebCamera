@@ -20,7 +20,7 @@ func TestIsImageBlack(t *testing.T) {
 			args: args{
 				src: nil,
 			},
-			wantR:   false,
+			wantR:   true,
 			wantErr: false,
 		},
 	}

@@ -13,14 +13,16 @@ import (
 	"time"
 
 	"github.com/veyanrech/homeWebCamera/imagecapture/config"
+	"github.com/veyanrech/homeWebCamera/imagecapture/image"
 	"github.com/veyanrech/homeWebCamera/imagecapture/utils"
 )
 
 type Client struct {
-	certs []string
-	conf  config.Config
-	q     *RoundBufferQueue
-	l     utils.Logger
+	certs      []string
+	conf       config.Config
+	q          *RoundBufferQueue
+	l          utils.Logger
+	httpclient *http.Client
 }
 
 func NewClient(c config.Config, l utils.Logger) *Client {
@@ -28,6 +30,13 @@ func NewClient(c config.Config, l utils.Logger) *Client {
 		conf: c,
 		q:    NewRoundBufferQueue(5),
 		l:    l,
+		httpclient: &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true, // Disable certificate verification
+				},
+			},
+		},
 	}
 }
 
@@ -110,6 +119,17 @@ func (c *Client) sendFile(delqu *RoundBufferQueue, allowToDeleteCh chan bool) {
 			continue
 		}
 
+		is_black, err := image.IsImageBlack(fopen)
+		if err != nil {
+			c.l.Error(fmt.Sprint("Error checking if image is black: ", err))
+			fopen.Close()
+			continue
+		}
+
+		if is_black {
+			//TODO: add to delete queue
+		}
+
 		//add content to formdata
 		filepart, err := writer.CreateFormFile(fmt.Sprintf("file%d", counter), v)
 		if err != nil {
@@ -148,15 +168,7 @@ func (c *Client) sendFile(delqu *RoundBufferQueue, allowToDeleteCh chan bool) {
 		req.Header.Set("Content-Type", writer.FormDataContentType())
 		req.Header.Set("X-Chat-Registration-Token", c.conf.GetString("registered_chat_token"))
 
-		//send files
-		client := http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true, // Disable certificate verification
-				},
-			},
-		}
-		resp, err := client.Do(req)
+		resp, err := c.httpclient.Do(req)
 		if err != nil {
 			c.l.Error(fmt.Sprint("Error sending file: ", err))
 			fopen.Close()

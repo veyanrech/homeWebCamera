@@ -32,15 +32,15 @@ func IsImageBlack(src *os.File) (r bool, err error) {
 			totalPixels++
 			r, g, b, _ := img.At(x, y).RGBA()
 			r, g, b = r>>8, g>>8, b>>8
-			if r < darkPixelThreshold && g < darkPixelThreshold && b < darkPixelThreshold {
+			if int(r) < darkPixelThreshold && int(g) < darkPixelThreshold && int(b) < darkPixelThreshold {
 				darkPixelCount++
 			}
 		}
 	}
 
-	if darkPixelCount*100/totalPixels > darkPixelPercentage {
+	if darkPixelCount*100/totalPixels >= darkPixelPercentage {
 		return true, nil
 	}
 
-	return
+	return false, nil
 }
